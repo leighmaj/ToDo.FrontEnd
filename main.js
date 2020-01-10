@@ -191,6 +191,7 @@ function BuildTask(task, appendToElem, isComplete) {
         });
     });
     // Task Template HTML
+    // comment button
     let taskHtml = $(`<div class="card m-2 ${isComplete ? "border-danger" : "border-success"}">
             <div class="card-header ${isComplete ? "bg-danger" : "bg-success"} flex-row">
                 <h5 class="card-title text-center flex-grow-1">${task.Title}</h3>
@@ -199,6 +200,9 @@ function BuildTask(task, appendToElem, isComplete) {
                 <p class="card-text">${task.TaskBody}</p>
             </div>
             <div class="card-footer text-muted">
+            <div class="comment-div"><button type="button" class="btn btn-dark comment-button">Comments</button></div>
+            
+
         ${isComplete
             ? `<p class="text-right m-0">Finished: ${new Date(task.CompletedDate).toDateString()}</p>`
             : `<p class="text-right m-0">Started: ${new Date(task.CreatedDate).toDateString()}</p>`
@@ -272,5 +276,28 @@ function BuildTask(task, appendToElem, isComplete) {
         taskHtml.children(".card-header").after(newCardBody);
         newTextArea.focus();
     })
+    
+    //Add the ability to add a comment
+    taskHtml.find(".comment-button").click(function(){
+        let commentText = $(`<input type="text">`);
+        taskHtml.find(".comment-div").append(commentText)
+        let commentSubmitBtn = $(`<button type="button" class="btn btn-primary btn-sm">Submit</button>`)
+        taskHtml.find(".comment-div").append(commentSubmitBtn)
+        commentSubmitBtn.click(function(){
+            $.ajax({
+                url: `${apiHostBase}/comments`,
+                method: "POST",
+                data: {
+                    CommentBody: commentText.val(),
+                    UserId: task.UserId,
+                    TaskId: task.Id
+                }
+            }).done(function () {
+                getAndLoadTasksForUser(task.UserId);
+            })
+        })
+    }) 
+
+
     appendToElem.append(taskHtml);
 }
